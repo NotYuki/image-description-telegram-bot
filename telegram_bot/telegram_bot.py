@@ -1,4 +1,6 @@
+import os
 import tempfile
+import logging
 
 from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler
 from telegram.ext.filters import Filters
@@ -6,7 +8,11 @@ from telegram.update import Update
 
 from cloudmersive_image import ImageProcessor
 
-TELEGRAM_TOKEN_FILE = '../src/telegram_bot_access_token'
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+TELEGRAM_TOKEN_FILE = os.environ.get('TELEGRAM_TOKEN_FILE')
+HEROKU_APP_URL = 'https://image-description-telegram-bot.herokuapp.com/'
 
 
 class TelegramBot:
@@ -14,45 +20,54 @@ class TelegramBot:
 
     def __init__(self):
         with open(TELEGRAM_TOKEN_FILE) as tf:
-            token = tf.read().strip()
+            self.token = tf.read().strip()
 
-        self.updater = Updater(token)
+        self.updater = Updater(self.token)
         self.dp = self.updater.dispatcher
 
         self.init_handlers()
+
+        self.port = int(os.environ.get('TELEGRAM_WEBHOOK_PORT', 5000))
 
     def init_handlers(self):
         """Initialize chat message handlers"""
         self.dp.add_handler(CommandHandler('hello', TelegramBotCallback.answer_hello))
         self.dp.add_handler(MessageHandler(Filters.photo, TelegramBotCallback.describe_photo))
+        self.dp.add_error_handler(TelegramBotCallback.log_error)
 
     def startup(self):
-        self.updater.start_polling()
+        self.updater.start_webhook(listen='0.0.0.0', port=self.port, url_path=self.token)
+        self.updater.bot.setWebhook(HEROKU_APP_URL + self.token)
         self.updater.idle()
 
 
 class TelegramBotCallback:
     @staticmethod
-    def answer_hello(update: Update, callback: CallbackContext):
+    def start(update: Update, context: CallbackContext):
+        """Answers to /start with general info about chat bot"""
+        update.message.reply_text('Hello! This is what I can do for you:'
+                                  '  - /start — show this text'
+                                  '  - message with image — description in English')
+
+    @staticmethod
+    def answer_hello(update: Update, context: CallbackContext):
         """Answers to /hello command in chat. Vocative can be specified as an additional space separated parameter:
         /hello {vocative}
 
         In: /hello World
         Out: Hello, World!
         """
-        bot = callback.bot
-        chat_id = update.message.chat_id
-        if callback.args:
-            name = ' '.join(callback.args)
-            bot.send_message(chat_id=chat_id, text=f'Hello, {name}!')
+        if context.args:
+            name = ' '.join(context.args)
+            update.message.reply_text(f'Hello, {name}!')
         else:
-            bot.send_message(chat_id=chat_id, text=f'Hello!')
+            update.message.reply_text('Hello!')
 
     @staticmethod
-    def describe_photo(update: Update, callback: CallbackContext):
+    def describe_photo(update: Update, context: CallbackContext):
         """Answer to image in chat with its description in English"""
 
-        bot = callback.bot
+        bot = context.bot
         photo = update.effective_message.photo[-1]  # The last photo is the largest one
         photo_fp = bot.get_file(photo).download(out=tempfile.NamedTemporaryFile())
         photo_path = photo_fp.name
@@ -67,7 +82,12 @@ class TelegramBotCallback:
         else:
             msg = f"Oh, I know what it is!\n\n{photo_desc.best_outcome.description}"
 
-        bot.send_message(chat_id=update.message.chat_id, text=msg)
+        update.message.reply_text(msg)
+
+    @staticmethod
+    def log_error(update, context):
+        """Log Errors caused by Updates."""
+        logger.warning(f'Update "{update}" caused error "{context.error}"')
 
 
 if __name__ == '__main__':

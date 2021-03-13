@@ -1,8 +1,10 @@
 import cloudmersive_image_api_client
 from cloudmersive_image_api_client.models.image_description_response import ImageDescriptionResponse
 from cloudmersive_image_api_client.rest import ApiException
+import os
 
-CLOUDMERSIVE_API_KEY_FILE = '../src/cloudmersive_api_key'
+
+CLOUDMERSIVE_API_KEY_FILE = os.environ.get('CLOUDMERSIVE_API_KEY_FILE')
 
 
 class ImageProcessor:
