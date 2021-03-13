@@ -4,7 +4,7 @@ import cloudmersive_image_api_client
 from cloudmersive_image_api_client.models.image_description_response import ImageDescriptionResponse
 from cloudmersive_image_api_client.rest import ApiException
 
-CLOUDMERSIVE_API_KEY_FILE = os.environ.get('CLOUDMERSIVE_API_KEY_FILE')
+CLOUDMERSIVE_API_KEY = os.environ.get('CLOUDMERSIVE_API_KEY')
 
 
 class ImageProcessor:
@@ -15,12 +15,9 @@ class ImageProcessor:
     """
 
     def __init__(self):
-        with open(CLOUDMERSIVE_API_KEY_FILE) as kf:
-            api_key = kf.read().strip()
-
         # Configure API key authorization: Apikey
         configuration = cloudmersive_image_api_client.Configuration()
-        configuration.api_key['Apikey'] = api_key
+        configuration.api_key['Apikey'] = CLOUDMERSIVE_API_KEY
 
         # Create an instance of the API class
         self.api_instance = cloudmersive_image_api_client.RecognizeApi(

@@ -11,7 +11,7 @@ from cloudmersive_image import ImageProcessor
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-TELEGRAM_TOKEN_FILE = os.environ.get('TELEGRAM_TOKEN_FILE')
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 HEROKU_APP_URL = 'https://image-description-telegram-bot.herokuapp.com/'
 
 
@@ -19,10 +19,7 @@ class TelegramBot:
     """Class to initialize and startup bot"""
 
     def __init__(self):
-        with open(TELEGRAM_TOKEN_FILE) as tf:
-            self.token = tf.read().strip()
-
-        self.updater = Updater(self.token)
+        self.updater = Updater(TELEGRAM_TOKEN)
         self.dp = self.updater.dispatcher
 
         self.init_handlers()
@@ -36,8 +33,8 @@ class TelegramBot:
         self.dp.add_error_handler(TelegramBotCallback.log_error)
 
     def startup(self):
-        self.updater.start_webhook(listen='0.0.0.0', port=self.port, url_path=self.token)
-        self.updater.bot.setWebhook(HEROKU_APP_URL + self.token)
+        self.updater.start_webhook(listen='0.0.0.0', port=self.port, url_path=TELEGRAM_TOKEN)
+        self.updater.bot.setWebhook(HEROKU_APP_URL + TELEGRAM_TOKEN)
         self.updater.idle()
 
 
