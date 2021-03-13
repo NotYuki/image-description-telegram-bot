@@ -43,9 +43,10 @@ class TelegramBotCallback:
     @staticmethod
     def start(update: Update, context: CallbackContext):
         """Answers to /start with general info about chat bot"""
-        update.message.reply_text('Hello! This is what I can do for you:'
-                                  '  - /start — show this text'
-                                  '  - message with image — description in English')
+        update.message.reply_text("Hello! This is what I can do for you:\n"
+                                  "  - /start — show this text\n"
+                                  "  - /hello — say 'Hello'\n"
+                                  "  - message with image — description in English")
 
     @staticmethod
     def answer_hello(update: Update, context: CallbackContext):
