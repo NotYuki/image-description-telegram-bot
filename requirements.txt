@@ -1,0 +1,2 @@
+cloudmersive-image-api-client==3.0.1
+python-telegram-bot==13.3
