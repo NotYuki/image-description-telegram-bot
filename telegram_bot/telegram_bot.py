@@ -24,7 +24,7 @@ class TelegramBot:
 
         self.init_handlers()
 
-        self.port = int(os.environ.get('TELEGRAM_WEBHOOK_PORT', 5000))
+        self.port = int(os.environ.get('PORT', 5000))
 
     def init_handlers(self):
         """Initialize chat message handlers"""
