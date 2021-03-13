@@ -28,6 +28,7 @@ class TelegramBot:
 
     def init_handlers(self):
         """Initialize chat message handlers"""
+        self.dp.add_handler(CommandHandler('start', TelegramBotCallback.start))
         self.dp.add_handler(CommandHandler('hello', TelegramBotCallback.answer_hello))
         self.dp.add_handler(MessageHandler(Filters.photo, TelegramBotCallback.describe_photo))
         self.dp.add_error_handler(TelegramBotCallback.log_error)
